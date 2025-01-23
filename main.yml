@@ -1,0 +1,85 @@
+---
+- name: TSDM Implementation Playbook
+  hosts: localhost
+  gather_facts: no
+  vars:
+    vcenter_hostname: "vcenter-mgmt.vcf.sddc.lab"
+    vcenter_username: "administrator@vsphere.local"
+    vcenter_password: "VMware123!"
+    # esxi_hosts:
+    #   - { name: "esxi_host_1", vmkernel_ip: "10.154.130.10", subnet: "255.255.255.0", gateway: "10.154.130.1" }
+    #   - { name: "esxi_host_2", vmkernel_ip: "10.154.130.11", subnet: "255.255.255.0", gateway: "10.154.130.1" }
+    vlan_id: "1281"
+    port_group_name: "vds_<cluster_name>_tsdm_vlan_1281"
+    distributed_switch: "vds02"
+
+  tasks:
+    # - name: Ensure required VMware libraries are installed
+    #   pip:
+    #     name:
+    #       - pyvmomi
+    #       - requests
+
+    # - name: Ensure VMware Ansible collection is installed
+    #   ansible.builtin.command:
+    #     cmd: ansible-galaxy collection install community.vmware
+
+    - name: Create distributed port group
+      community.vmware.vmware_dvs_portgroup:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        switch_name: "{{ distributed_switch }}"
+        portgroup_name: "{{ port_group_name }}"
+        vlan_id: "{{ vlan_id }}"
+        number_of_ports: 24
+        teaming:
+          policy: "loadbalance_srcid"  # Load balancing based on source port ID
+          active_uplinks:
+            - "uplink1"
+            - "uplink2"
+          standby_uplinks:
+            - "uplink3"
+          notify_switches: true
+          failback: true
+        port_binding: static
+        state: present
+
+    - name: Configure VMKernel ports on ESXi hosts
+      community.vmware.vmware_vmkernel:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        esxi_hostname: "{{ item.name }}"
+        portgroup_name: "{{ port_group_name }}"
+        network:
+          type: 'static'
+          ip_address: "{{ item.vmkernel_ip }}"
+          subnet_mask: "{{ item.subnet }}"
+      loop: "{{ esxi_hosts }}"
+
+    - name: Add static routes for VMKernel ports
+      community.vmware.vmware_host_config_manager:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        esxi_hostname: "{{ item.name }}"
+        config_type: "network"
+        state: present
+        config_parameters:
+          - name: "network.ip.route.add"
+            value: "--gateway {{ item.gateway }} --network {{ item.vmkernel_ip }}/24"
+      loop: "{{ esxi_hosts }}"
+
+    - name: Validate VMKernel port connectivity via SSH
+      ansible.builtin.shell:
+        cmd: "vmkping -I vmk0 10.154.130.2"
+      delegate_to: "{{ item.name }}"
+      become: true
+      vars:
+        ansible_ssh_user: "root"  # Replace with the SSH user for ESXi
+        ansible_ssh_pass: "your-esxi-password"  # Replace with the SSH password for ESXi
+      loop: "{{ esxi_hosts }}"
