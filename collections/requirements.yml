@@ -1,0 +1,5 @@
+---
+collections:
+  - name: communtiy.vmware
+  - name: ansible.utils
+  - name: ansible.controller
