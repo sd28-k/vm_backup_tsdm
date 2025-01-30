@@ -7,13 +7,13 @@
     vcenter_username: "administrator@vsphere.local"
     vcenter_password: "HPEinvent23!"
     datacenter_name: "datacenter-01"
-    # esxi_hosts:
-    #   - { name: "esxi_host_1", vmkernel_ip: "10.154.130.10", subnet: "255.255.255.0", gateway: "10.154.130.1" }
+    esxi_hosts:
+      - { name: "192.168.243.47", vmkernel_ip: "192.168.243.130", subnet: "255.255.255.0" }
     #   - { name: "esxi_host_2", vmkernel_ip: "10.154.130.11", subnet: "255.255.255.0", gateway: "10.154.130.1" }
     vlan_id: "3009"
-    port_group_name: "vds_48_tsdm_vlan_1281"
+    port_group_name: "vds_47_tsdm_vlan_3009"
     distributed_switch: "vds02"
-
+    
   tasks:
     - name: Ensure required VMware libraries are installed
       pip:
@@ -25,6 +25,16 @@
       ansible.builtin.command:
         cmd: ansible-galaxy collection install community.vmware
         
+    - name: Ensure required VMware libraries are installed
+      pip:
+        name:
+          - pyvmomi
+          - requests
+
+    - name: Ensure VMware Ansible collection is installed
+      ansible.builtin.command:
+        cmd: ansible-galaxy collection install community.vmware
+
     - name: Create a vSphere Distributed Switch
       community.vmware.vmware_dvswitch:
         hostname: "{{ vcenter_hostname }}"
@@ -32,11 +42,15 @@
         password: "{{ vcenter_password }}"
         validate_certs: false
         datacenter_name: "{{ datacenter_name }}"
-        switch_name: "{{ vds_name }}"
+        switch_name: "{{ distributed_switch }}"
         version: 7.0.3
         uplink_quantity: 2
         state: present
       delegate_to: localhost
+      register: dvs_res
+
+    - debug:
+        var: dvs_res
       
 
     - name: Create distributed port group
@@ -48,17 +62,21 @@
         switch_name: "{{ distributed_switch }}"
         portgroup_name: "{{ port_group_name }}"
         vlan_id: "{{ vlan_id }}"
-        number_of_ports: 24
-        teaming:
-          policy: "loadbalance_srcid"  # Load balancing based on source port ID
-          active_uplinks:
-            - "uplink1"
-            - "uplink2"
-          notify_switches: true
-          failback: true
+        num_ports: 24
+          # teaming:
+          #policy: "loadbalance_srcid"  # Load balancing based on source port ID
+          #active_uplinks:
+          # - "uplink1"
+          # - "uplink2"
+          #notify_switches: true
+          #failback: true
         port_binding: static
         state: present
+      register: port_res
 
+    - debug:
+        var: port_res
+        
     - name: Configure VMKernel ports on ESXi hosts
       community.vmware.vmware_vmkernel:
         hostname: "{{ vcenter_hostname }}"
@@ -66,11 +84,15 @@
         password: "{{ vcenter_password }}"
         validate_certs: no
         esxi_hostname: "{{ item.name }}"
+        dvswitch_name: "{{ distributed_switch }}"
         portgroup_name: "{{ port_group_name }}"
         network:
           type: 'static'
           ip_address: "{{ item.vmkernel_ip }}"
           subnet_mask: "{{ item.subnet }}"
+            #default_gateway: "{{ item.gateway }}"
+        state: present
+        enable_mgmt: false
       loop: "{{ esxi_hosts }}"
 
     # - name: Add static routes for VMKernel ports
