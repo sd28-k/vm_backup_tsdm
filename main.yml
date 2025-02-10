@@ -95,19 +95,14 @@
         enable_mgmt: false
       loop: "{{ esxi_hosts }}"
 
-    # - name: Add static routes for VMKernel ports
-    #   community.vmware.vmware_host_config_manager:
-    #     hostname: "{{ vcenter_hostname }}"
-    #     username: "{{ vcenter_username }}"
-    #     password: "{{ vcenter_password }}"
-    #     validate_certs: no
-    #     esxi_hostname: "{{ item.name }}"
-    #     config_type: "network"
-    #     state: present
-    #     config_parameters:
-    #       - name: "network.ip.route.add"
-    #         value: "--gateway {{ item.gateway }} --network {{ item.vmkernel_ip }}/24"
-    #   loop: "{{ esxi_hosts }}"
+    - name: Add a static route using esxcli on ESXi host
+      ansible.builtin.command: sshpass -p '{{ esxi_password }}' ssh -o StrictHostKeyChecking=no {{ esxi_username }}@{{ esxi_host }}
+        "esxcli network ip route ipv4 add -n {{ network }}/{{ netmask }} -g {{ gateway }}"
+      register: esxcli_output
+
+    - name: Display route addition output
+      debug:
+        msg: "{{ esxcli_output.stdout }}"
 
     # - name: Validate VMKernel port connectivity via SSH
     #   ansible.builtin.shell:
