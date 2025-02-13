@@ -1,0 +1,62 @@
+---
+- name: TSDM Implementation Playbook
+  hosts: localhost
+  gather_facts: no
+  vars:
+    vcenter_hostname: "vcenter01.anpslab.com"
+    vcenter_username: "administrator@vsphere.local"
+    vcenter_password: "HPEinvent23!"
+    datacenter_name: "datacenter-01"
+    esxi_hosts:
+      - { name: "192.168.243.48", vmkernel_ip: "192.168.243.119", subnet: "255.255.255.0" }
+    #   - { name: "esxi_host_2", vmkernel_ip: "10.154.130.11", subnet: "255.255.255.0", gateway: "10.154.130.1" }
+    vlan_id: "3009"
+    port_group_name: "vds_48_tsdm_vlan_3009"
+    dvs_name: "vds02"
+    dvs_version: "7.0.3"
+    cluster_name: "Cluster3"
+    
+  tasks:
+  - name: Gather information about the cluster
+    community.vmware.vmware_cluster_info:
+      hostname: "{{ vcenter_hostname }}"
+      username: "{{ vcenter_username }}"
+      password: "{{ vcenter_password }}"
+      validate_certs: no
+      cluster_name: "{{ cluster_name }}"
+    register: cluster_info
+
+  - name: Get all hosts in the cluster
+    community.vmware.vmware_host_info:
+      hostname: "{{ vcenter_hostname }}"
+      username: "{{ vcenter_username }}"
+      password: "{{ vcenter_password }}"
+      validate_certs: no
+    register: esxi_hosts
+
+  - name: Filter hosts belonging to the specific cluster
+    set_fact:
+      cluster_hosts: "{{ esxi_hosts.hosts | selectattr('cluster', 'equalto', cluster_name) | map(attribute='name') | list }}"
+
+  - name: Create Distributed Virtual Switch
+    community.vmware.vmware_dvswitch:
+      hostname: "{{ vcenter_hostname }}"
+      username: "{{ vcenter_username }}"
+      password: "{{ vcenter_password }}"
+      validate_certs: no
+      switch_name: "{{ dvs_name }}"
+      switch_version: "{{ dvs_version }}"  # Optional: Specify version
+      uplink_port_names: ["uplink1", "uplink2"]  # Define uplinks
+      state: present
+    register: dvs_result
+
+  - name: Add ESXi hosts to the Distributed Virtual Switch
+    community.vmware.vmware_dvs_host:
+      hostname: "{{ vcenter_hostname }}"
+      username: "{{ vcenter_username }}"
+      password: "{{ vcenter_password }}"
+      validate_certs: no
+      switch_name: "{{ dvs_name }}"
+      esxi_hostname: "{{ item }}"
+      state: present
+    loop: "{{ cluster_hosts }}"
