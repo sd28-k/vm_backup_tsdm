@@ -41,9 +41,9 @@
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
-        esxi_hostname: "{{ esxi_hostname }}"
+        esxi_hostname: "{{ item.name }}"
         validate_certs: no
-      register: esxi_hosts
+      loop: "{{ esxi_hosts }}"
   
     # - name: Filter hosts belonging to the specific cluster
     #   set_fact:
@@ -66,10 +66,10 @@
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
-        esxi_hostname: "{{ esxi_hostname }}"
+        esxi_hostname: "{{ item.name }}"
         validate_certs: no
         switch_name: "{{ dvs_name }}"
         vmnics:
           - vmnic1
         state: present
-      #loop: "{{ cluster_hosts }}"
+      loop: "{{ esxi_hosts }}"
