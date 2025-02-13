@@ -36,17 +36,18 @@
         cluster_name: "{{ cluster_name }}"
       register: cluster_info
   
-    - name: Get all hosts in the cluster
+    - name: Get host info in the cluster
       community.vmware.vmware_host_info:
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
+        esxi_hostname: "{{ esxi_hostname }}"
         validate_certs: no
       register: esxi_hosts
   
-    - name: Filter hosts belonging to the specific cluster
-      set_fact:
-        cluster_hosts: "{{ esxi_hosts.hosts | selectattr('cluster', 'equalto', cluster_name) | map(attribute='name') | list }}"
+    # - name: Filter hosts belonging to the specific cluster
+    #   set_fact:
+    #     cluster_hosts: "{{ esxi_hosts.hosts | selectattr('cluster', 'equalto', cluster_name) | map(attribute='name') | list }}"
   
     - name: Create Distributed Virtual Switch
       community.vmware.vmware_dvswitch:
@@ -65,8 +66,10 @@
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
+        esxi_hostname: "{{ esxi_hostname }}"
         validate_certs: no
         switch_name: "{{ dvs_name }}"
-        esxi_hostname: "{{ item }}"
+        vmnics:
+          - vmnic1
         state: present
-      loop: "{{ cluster_hosts }}"
+      #loop: "{{ cluster_hosts }}"
