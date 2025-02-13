@@ -17,6 +17,16 @@
     cluster_name: "Cluster3"
     
   tasks:
+  - name: Ensure required VMware libraries are installed
+    pip:
+      name:
+        - pyvmomi
+        - requests
+
+  - name: Ensure VMware Ansible collection is installed
+    ansible.builtin.command:
+      cmd: ansible-galaxy collection install community.vmware
+      
   - name: Gather information about the cluster
     community.vmware.vmware_cluster_info:
       hostname: "{{ vcenter_hostname }}"
