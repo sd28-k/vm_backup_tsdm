@@ -58,7 +58,8 @@
         datacenter_name: "{{ datacenter_name }}"
         switch_name: "{{ dvs_name }}"
         switch_version: "{{ dvs_version }}"  # Optional: Specify version
-        uplink_port_names: ["uplink1", "uplink2"]  # Define uplinks
+        # uplink_port_names: ["uplink1", "uplink2"]  # Define uplinks
+        uplink_quantity: 2
         state: present
       register: dvs_result
   
