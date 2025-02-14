@@ -71,7 +71,7 @@
         esxi_hostname: "{{ item.name }}"
         validate_certs: no
         switch_name: "{{ dvs_name }}"
-        vmnics:
-          - vmnic1
+        # vmnics:
+        #   - vmnic1
         state: present
       with_items: "{{ esxi_hosts }}"
