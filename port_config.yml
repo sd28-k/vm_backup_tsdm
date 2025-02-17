@@ -86,6 +86,7 @@
         vlan_id: "{{ vlan_id }}"
         num_ports: 4
         port_binding: static
+        validate_certs: no
         state: present
       delegate_to: localhost
       # with_items: "{{ esxi_hosts }}"
