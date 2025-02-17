@@ -125,3 +125,9 @@
     - name: Display route addition output
       debug:
         msg: "{{ esxcli_output }}"
+
+    - name: List static routes using esxcli on ESXi host
+      ansible.builtin.command: sshpass -p '{{ item.password }}' ssh -o StrictHostKeyChecking=no '{{ item.username }}@{{ item.hostname }}'
+        'vmkping -c 5 -I vmk1 {{ item.gateway }}'
+      register: vmk_output
+      loop: "{{ esxi_hosts }}"
