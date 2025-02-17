@@ -110,9 +110,15 @@
         enable_mgmt: false
       loop: "{{ esxi_hosts }}"
 
-    - name: Add a static route using esxcli on ESXi host
+    # - name: Add a static route using esxcli on ESXi host
+    #   ansible.builtin.command: sshpass -p '{{ item.password }}' ssh -o StrictHostKeyChecking=no '{{ item.username }}@{{ item.hostname }}'
+    #     'esxcli network ip route ipv4 add --gateway {{ item.gateway }} --network 10.154.132.0/24'
+    #   register: esxcli_output
+    #   loop: "{{ esxi_hosts }}"
+
+    - name: List static routes using esxcli on ESXi host
       ansible.builtin.command: sshpass -p '{{ item.password }}' ssh -o StrictHostKeyChecking=no '{{ item.username }}@{{ item.hostname }}'
-        'esxcli network ip route ipv4 add --gateway {{ item.gateway }} --network 10.154.132.0/24'
+        'esxcli network ip route ipv4 list'
       register: esxcli_output
       loop: "{{ esxi_hosts }}"
 
