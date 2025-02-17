@@ -131,3 +131,4 @@
         'vmkping -c 5 -I vmk1 {{ item.gateway }}'
       register: vmk_output
       loop: "{{ esxi_hosts }}"
+      ignore_errors: yes
