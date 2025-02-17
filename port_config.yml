@@ -111,7 +111,7 @@
 
     - name: Add a static route using esxcli on ESXi host
       ansible.builtin.command: sshpass -p '{{ item.password }}' ssh -o StrictHostKeyChecking=no '{{ item.username }}@{{ item.hostname }}'
-        'esxcli network ip route ipv4 add --gateway 192.168.243.127 --network 192.168.243.119/28'
+        'esxcli network ip route ipv4 add --gateway 192.168.243.127 --network 192.168.243.112/28'
       register: esxcli_output
       loop: "{{ esxi_hosts }}"
 
