@@ -8,8 +8,8 @@
     vcenter_password: "HPEinvent23!"
     datacenter_name: "datacenter-01"
     esxi_hosts:
-      - { hostname: "192.168.243.48", vmkernel_ip: "192.168.243.119", subnet: "255.255.255.0", gateway: "192.168.243.1", username: "root", password: "P@ssw0rd" }
-      # - { hostname: "192.168.243.48", vmkernel_ip: "10.154.132.12", subnet: "255.255.255.0", gateway: "10.154.132.1", username: "root", password: "P@ssw0rd" }
+      # - { hostname: "192.168.243.48", vmkernel_ip: "192.168.243.119", subnet: "255.255.255.0", gateway: "192.168.243.1", username: "root", password: "P@ssw0rd" }
+      - { hostname: "192.168.243.48", vmkernel_ip: "10.154.132.12", subnet: "255.255.255.0", gateway: "10.154.132.1", username: "root", password: "P@ssw0rd" }
     #   - { name: "esxi_host_2", vmkernel_ip: "10.154.130.11", subnet: "255.255.255.0", gateway: "10.154.130.1" }
     vlan_id: "3009"
     port_group_name: "vds_48_tsdm_vlan_3009"
@@ -64,18 +64,18 @@
         state: present
       register: dvs_result
   
-    - name: Add ESXi hosts to the Distributed Virtual Switch
-      community.vmware.vmware_dvs_host:
-        hostname: "{{ vcenter_hostname }}"
-        username: "{{ vcenter_username }}"
-        password: "{{ vcenter_password }}"
-        esxi_hostname: "{{ item.hostname }}"
-        validate_certs: no
-        switch_name: "{{ dvs_name }}"
-        # vmnics:
-        #   - vmnic1
-        state: present
-      with_items: "{{ esxi_hosts }}"
+    # - name: Add ESXi hosts to the Distributed Virtual Switch
+    #   community.vmware.vmware_dvs_host:
+    #     hostname: "{{ vcenter_hostname }}"
+    #     username: "{{ vcenter_username }}"
+    #     password: "{{ vcenter_password }}"
+    #     esxi_hostname: "{{ item.hostname }}"
+    #     validate_certs: no
+    #     switch_name: "{{ dvs_name }}"
+    #     # vmnics:
+    #     #   - vmnic1
+    #     state: present
+    #   with_items: "{{ esxi_hosts }}"
 
     - name: Create vlan portgroup
       community.vmware.vmware_dvs_portgroup:
@@ -124,4 +124,4 @@
 
     - name: Display route addition output
       debug:
-        msg: "{{ esxcli_output.stdout }}"
+        msg: "{{ esxcli_output }}"
