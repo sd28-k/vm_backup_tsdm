@@ -68,10 +68,24 @@
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
-        esxi_hostname: "{{ item.name }}"
+        esxi_hostname: "{{ item.hostname }}"
         validate_certs: no
         switch_name: "{{ dvs_name }}"
         # vmnics:
         #   - vmnic1
         state: present
       with_items: "{{ esxi_hosts }}"
+
+    - name: Create vlan portgroup
+      community.vmware.vmware_dvs_portgroup:
+        hostname: '{{ vcenter_hostname }}'
+        username: '{{ vcenter_username }}'
+        password: '{{ vcenter_password }}'
+        portgroup_name: "{{ port_group_name }}"
+        switch_name: "{{ dvs_name }}"
+        vlan_id: "{{ vlan_id }}"
+        num_ports: 4
+        port_binding: static
+        state: present
+      delegate_to: localhost
+      # with_items: "{{ esxi_hosts }}"
