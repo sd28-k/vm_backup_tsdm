@@ -8,7 +8,7 @@
     vcenter_password: "HPEinvent23!"
     datacenter_name: "datacenter-01"
     esxi_hosts:
-      - { hostname: "192.168.243.48", vmkernel_ip: "192.168.243.119", subnet: "255.255.255.0", gateway: "192.168.243.1" }
+      - { hostname: "192.168.243.48", vmkernel_ip: "192.168.243.119", subnet: "255.255.255.0", gateway: "192.168.243.1", username: "root", password: "P@ssw0rd" }
     #   - { name: "esxi_host_2", vmkernel_ip: "10.154.130.11", subnet: "255.255.255.0", gateway: "10.154.130.1" }
     vlan_id: "3009"
     port_group_name: "vds_48_tsdm_vlan_3009"
@@ -108,3 +108,13 @@
         state: present
         enable_mgmt: false
       loop: "{{ esxi_hosts }}"
+
+    - name: Add a static route using esxcli on ESXi host
+      ansible.builtin.command: sshpass -p '{{ item.password }}' ssh -o StrictHostKeyChecking=no '{{ item.username }}@{{ item.hostname }}'
+        'esxcli network ip route ipv4 add --gateway {{ item.gateway }} --network 192.168.243.0/24'
+      register: esxcli_output
+      loop: "{{ esxi_hosts }}"
+
+    - name: Display route addition output
+      debug:
+        msg: "{{ esxcli_output.stdout }}"
