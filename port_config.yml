@@ -64,18 +64,18 @@
         state: present
       register: dvs_result
   
-    # - name: Add ESXi hosts to the Distributed Virtual Switch
-    #   community.vmware.vmware_dvs_host:
-    #     hostname: "{{ vcenter_hostname }}"
-    #     username: "{{ vcenter_username }}"
-    #     password: "{{ vcenter_password }}"
-    #     esxi_hostname: "{{ item.hostname }}"
-    #     validate_certs: no
-    #     switch_name: "{{ dvs_name }}"
-    #     # vmnics:
-    #     #   - vmnic1
-    #     state: present
-    #   with_items: "{{ esxi_hosts }}"
+    - name: Add ESXi hosts to the Distributed Virtual Switch
+      community.vmware.vmware_dvs_host:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        esxi_hostname: "{{ item.hostname }}"
+        validate_certs: no
+        switch_name: "{{ dvs_name }}"
+        # vmnics:
+        #   - vmnic1
+        state: present
+      with_items: "{{ esxi_hosts }}"
 
     - name: Create vlan portgroup
       community.vmware.vmware_dvs_portgroup:
@@ -90,31 +90,31 @@
         validate_certs: no
         state: present
       delegate_to: localhost
-      # with_items: "{{ esxi_hosts }}"
+      with_items: "{{ esxi_hosts }}"
 
-    # - name: Configure VMKernel ports on ESXi hosts
-    #   community.vmware.vmware_vmkernel:
-    #     hostname: "{{ vcenter_hostname }}"
-    #     username: "{{ vcenter_username }}"
-    #     password: "{{ vcenter_password }}"
-    #     validate_certs: no
-    #     esxi_hostname: "{{ item.hostname }}"
-    #     dvswitch_name: "{{ dvs_name }}"
-    #     portgroup_name: "{{ port_group_name }}"
-    #     network:
-    #       type: 'static'
-    #       ip_address: "{{ item.vmkernel_ip }}"
-    #       subnet_mask: "{{ item.subnet }}"
-    #       default_gateway: "{{ item.gateway }}"
-    #     state: present
-    #     enable_mgmt: false
-    #   loop: "{{ esxi_hosts }}"
+    - name: Configure VMKernel ports on ESXi hosts
+      community.vmware.vmware_vmkernel:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        esxi_hostname: "{{ item.hostname }}"
+        dvswitch_name: "{{ dvs_name }}"
+        portgroup_name: "{{ port_group_name }}"
+        network:
+          type: 'static'
+          ip_address: "{{ item.vmkernel_ip }}"
+          subnet_mask: "{{ item.subnet }}"
+          default_gateway: "{{ item.gateway }}"
+        state: present
+        enable_mgmt: false
+      loop: "{{ esxi_hosts }}"
 
-    # - name: Add a static route using esxcli on ESXi host
-    #   ansible.builtin.command: sshpass -p '{{ item.password }}' ssh -o StrictHostKeyChecking=no '{{ item.username }}@{{ item.hostname }}'
-    #     'esxcli network ip route ipv4 add --gateway {{ item.gateway }} --network 10.154.132.0/24'
-    #   register: esxcli_output
-    #   loop: "{{ esxi_hosts }}"
+    - name: Add a static route using esxcli on ESXi host
+      ansible.builtin.command: sshpass -p '{{ item.password }}' ssh -o StrictHostKeyChecking=no '{{ item.username }}@{{ item.hostname }}'
+        'esxcli network ip route ipv4 add --gateway {{ item.gateway }} --network 10.154.132.0/24'
+      register: esxcli_output
+      loop: "{{ esxi_hosts }}"
 
     - name: List static routes using esxcli on ESXi host
       ansible.builtin.command: sshpass -p '{{ item.password }}' ssh -o StrictHostKeyChecking=no '{{ item.username }}@{{ item.hostname }}'
