@@ -2,7 +2,6 @@
 var switchName = "MyDistributedSwitch";  // Replace with user input
 var switchVersion = "7.0.0";  // Replace with user input
 var datacenterName = "Datacenter";  // Replace with user input
-
 // Fixed uplink quantity
 var uplinkQuantity = 2;  // Always set to 2
 
@@ -31,8 +30,8 @@ dvsCreateSpec.configSpec.numStandalonePorts = 10; // Default standalone ports
 dvsCreateSpec.configSpec.uplinkPortPolicy = new VcDVSNameArrayUplinkPortPolicy();
 
 // Set the DVS version
-dvsCreateSpec.configSpec.productInfo = new VcDistributedVirtualSwitchProductSpec();
-dvsCreateSpec.configSpec.productInfo.version = switchVersion;
+dvsCreateSpec.productInfo = new VcDistributedVirtualSwitchProductSpec();
+dvsCreateSpec.productInfo.version = switchVersion;
 
 // Configure exactly 2 uplinks
 dvsCreateSpec.configSpec.uplinkPortPolicy.uplinkPortName = ["Uplink1", "Uplink2"];
