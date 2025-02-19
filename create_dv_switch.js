@@ -25,19 +25,19 @@ if (!datacenter) {
 var dvsCreateSpec = new VcDVSCreateSpec();
 dvsCreateSpec.configSpec = new VcDVSConfigSpec();
 dvsCreateSpec.configSpec.name = switchName;
-dvsCreateSpec.configSpec.maxPorts = 1024; // Default max ports
-dvsCreateSpec.configSpec.numStandalonePorts = 10; // Default standalone ports
+// dvsCreateSpec.configSpec.maxPorts = 1024; // Default max ports
+// dvsCreateSpec.configSpec.numStandalonePorts = 10; // Default standalone ports
 dvsCreateSpec.configSpec.uplinkPortPolicy = new VcDVSNameArrayUplinkPortPolicy();
+// Configure exactly 2 uplinks
+dvsCreateSpec.configSpec.uplinkPortPolicy.uplinkPortName = ["Uplink1", "Uplink2"];
 
 // Set the DVS version
 dvsCreateSpec.productInfo = new VcDistributedVirtualSwitchProductSpec();
 dvsCreateSpec.productInfo.version = switchVersion;
 
-// Configure exactly 2 uplinks
-dvsCreateSpec.configSpec.uplinkPortPolicy.uplinkPortName = ["Uplink1", "Uplink2"];
-
 // Create the Distributed Switch
-var dvsManager = vc.dvSwitchManager;
+// var dvsManager = vc.dvSwitchManager;
+var dvsManager = new VCDistributedVirtualSwitchManager();
 var task = dvsManager.createDistributedVirtualSwitch_Task(datacenter, dvsCreateSpec);
 
 // Wait for completion
